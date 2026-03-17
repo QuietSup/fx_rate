@@ -1,3 +1,27 @@
 spring:
   application:
     name: fx_rate
+  datasource:
+    url: jdbc:postgresql://localhost:5432/fx_rate
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+    listener:
+      simple:
+        deserialization-trust-all: true
+
+app:
+  uploads:
+    dir: uploads
+  rabbit:
+    fx-import-queue: fx-rate.import-csv
+
