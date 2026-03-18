@@ -8,6 +8,9 @@ schema {
 type Query {
   pairs: [Pair!]!
   pair(id: ID!): Pair
+  pairByBaseQuote(base: String!, quote: String!): Pair
+  pairsByBase(base: String!): [Pair!]!
+  pairsByQuote(quote: String!): [Pair!]!
 
   historical(id: ID!): Historical
   historicalByPair(pairId: ID!, first: Int = 100, after: String): HistoricalConnection!

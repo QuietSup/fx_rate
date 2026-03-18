@@ -53,6 +53,24 @@ public class PairController {
         return pairRepository.findById(id).orElse(null);
     }
 
+    @QueryMapping
+    @Transactional(readOnly = true)
+    public PairEntity pairByBaseQuote(@Argument String base, @Argument String quote) {
+        return pairRepository.findByBaseAndQuote(base, quote).orElse(null);
+    }
+
+    @QueryMapping
+    @Transactional(readOnly = true)
+    public List<PairEntity> pairsByBase(@Argument String base) {
+        return pairRepository.findAllByBase(base);
+    }
+
+    @QueryMapping
+    @Transactional(readOnly = true)
+    public List<PairEntity> pairsByQuote(@Argument String quote) {
+        return pairRepository.findAllByQuote(quote);
+    }
+
     @SchemaMapping(typeName = "Pair", field = "historicals")
     @Transactional(readOnly = true)
     public HistoricalConnection pairHistoricals(PairEntity pair, @Argument Integer first, @Argument String after) {
