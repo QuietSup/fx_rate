@@ -11,10 +11,15 @@ import com.goodsoup.fx_rate.graphql.CursorUtil.DecodedFileUploadCursor;
 import com.goodsoup.fx_rate.graphql.HistoricalConnection.HistoricalEdge;
 import com.goodsoup.fx_rate.graphql.FileUploadConnection.FileUploadEdge;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.graphql.data.method.annotation.Argument;
+import org.springframework.graphql.data.method.annotation.BatchMapping;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.graphql.data.method.annotation.SchemaMapping;
 import org.springframework.stereotype.Controller;
@@ -87,6 +92,54 @@ public class EntityQueryController {
 
         int totalCount = fileUploadRepository.countByPair_Id(pair.getId());
         return new FileUploadConnection(totalCount, edges, new HistoricalConnection.PageInfo(endCursor, hasNextPage));
+    }
+
+    @BatchMapping(typeName = "Historical", field = "pair")
+    @Transactional(readOnly = true)
+    public Map<HistoricalEntity, PairEntity> historicalPair(List<HistoricalEntity> historicals) {
+        Set<Long> pairIds = new HashSet<>();
+        for (HistoricalEntity h : historicals) {
+            PairEntity p = h.getPair();
+            if (p != null && p.getId() != null) {
+                pairIds.add(p.getId());
+            }
+        }
+
+        Map<Long, PairEntity> pairsById = new HashMap<>();
+        for (PairEntity p : pairRepository.findAllById(pairIds)) {
+            pairsById.put(p.getId(), p);
+        }
+
+        Map<HistoricalEntity, PairEntity> out = new HashMap<>(historicals.size());
+        for (HistoricalEntity h : historicals) {
+            PairEntity p = h.getPair();
+            out.put(h, (p == null) ? null : pairsById.get(p.getId()));
+        }
+        return out;
+    }
+
+    @BatchMapping(typeName = "FileUpload", field = "pair")
+    @Transactional(readOnly = true)
+    public Map<FileUploadEntity, PairEntity> fileUploadPair(List<FileUploadEntity> uploads) {
+        Set<Long> pairIds = new HashSet<>();
+        for (FileUploadEntity u : uploads) {
+            PairEntity p = u.getPair();
+            if (p != null && p.getId() != null) {
+                pairIds.add(p.getId());
+            }
+        }
+
+        Map<Long, PairEntity> pairsById = new HashMap<>();
+        for (PairEntity p : pairRepository.findAllById(pairIds)) {
+            pairsById.put(p.getId(), p);
+        }
+
+        Map<FileUploadEntity, PairEntity> out = new HashMap<>(uploads.size());
+        for (FileUploadEntity u : uploads) {
+            PairEntity p = u.getPair();
+            out.put(u, (p == null) ? null : pairsById.get(p.getId()));
+        }
+        return out;
     }
 
     @QueryMapping
