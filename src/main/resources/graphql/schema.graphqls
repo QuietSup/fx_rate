@@ -1,0 +1,86 @@
+"""
+API for reading FX-rate entities.
+"""
+schema {
+  query: Query
+}
+
+type Query {
+  pairs: [Pair!]!
+  pair(id: ID!): Pair
+
+  historical(id: ID!): Historical
+  historicalByPair(pairId: ID!, first: Int = 100, after: String): HistoricalConnection!
+
+  fileUploads: [FileUpload!]!
+  fileUpload(id: ID!): FileUpload
+  fileUploadByUuid(uuid: ID!): FileUpload
+}
+
+type Pair {
+  id: ID!
+  base: String!
+  quote: String!
+  historicals(first: Int = 100, after: String): HistoricalConnection!
+  fileUploads(first: Int = 100, after: String): FileUploadConnection!
+}
+
+type Historical {
+  id: ID!
+  pair: Pair!
+  date: String!
+  high: BigDecimal!
+  low: BigDecimal!
+  close: BigDecimal!
+  changePips: BigDecimal
+  changePct: BigDecimal
+  createdAt: String!
+}
+
+type HistoricalEdge {
+  node: Historical!
+  cursor: String!
+}
+
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+}
+
+type HistoricalConnection {
+  totalCount: Int!
+  edges: [HistoricalEdge!]!
+  pageInfo: PageInfo!
+}
+
+type FileUpload {
+  id: ID!
+  fileUploadUuid: ID!
+  status: FileUploadStatus!
+  pair: Pair
+  rowsLoaded: Int
+  rowsSkipped: Int
+  errorMessage: String
+  createdAt: String!
+  updatedAt: String!
+}
+
+type FileUploadEdge {
+  node: FileUpload!
+  cursor: String!
+}
+
+type FileUploadConnection {
+  totalCount: Int!
+  edges: [FileUploadEdge!]!
+  pageInfo: PageInfo!
+}
+
+enum FileUploadStatus {
+  TO_PROCESS
+  PROCESSING
+  FINISHED
+  FAILED
+}
+
+scalar BigDecimal
