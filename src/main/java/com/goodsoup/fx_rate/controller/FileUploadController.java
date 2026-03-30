@@ -9,6 +9,7 @@ import jakarta.validation.constraints.Pattern;
 import java.util.UUID;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -29,6 +30,7 @@ public class FileUploadController {
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('ADMIN')")
     public FileUploadResponse upload(
             @RequestParam("file") @NotNull MultipartFile file,
             @RequestParam("base") @NotBlank @Pattern(regexp = "^[A-Z]{3}$") String base,
@@ -39,6 +41,7 @@ public class FileUploadController {
     }
 
     @GetMapping("/{uuid}")
+    @PreAuthorize("hasRole('ADMIN')")
     public FileUploadResponse get(@PathVariable UUID uuid) {
         return toResponse(fileUploadService.getByUuid(uuid));
     }
