@@ -138,6 +138,39 @@ class PairControllerGraphQlTest {
     }
 
     @Test
+    void pairByBaseQuote_returnsGraphQlError_whenBaseInvalid() {
+        graphQlTester
+                .document("""
+                        query($base: String!, $quote: String!) {
+                          pairByBaseQuote(base: $base, quote: $quote) {
+                            id
+                          }
+                        }
+                        """)
+                .variable("base", "EURO")
+                .variable("quote", "USD")
+                .execute()
+                .errors()
+                .satisfy(errors -> org.assertj.core.api.Assertions.assertThat(errors).isNotEmpty());
+    }
+
+    @Test
+    void pairsByQuote_returnsGraphQlError_whenQuoteInvalid() {
+        graphQlTester
+                .document("""
+                        query($quote: String!) {
+                          pairsByQuote(quote: $quote) {
+                            id
+                          }
+                        }
+                        """)
+                .variable("quote", "usd")
+                .execute()
+                .errors()
+                .satisfy(errors -> org.assertj.core.api.Assertions.assertThat(errors).isNotEmpty());
+    }
+
+    @Test
     void pairByBaseQuote_returnsNullWhenNotFound() {
         when(pairRepository.findByBaseAndQuote("EUR", "USD")).thenReturn(java.util.Optional.empty());
 

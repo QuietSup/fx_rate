@@ -10,6 +10,8 @@ import com.goodsoup.fx_rate.graphql.HistoricalConnection.HistoricalEdge;
 import com.goodsoup.fx_rate.repo.FileUploadRepository;
 import com.goodsoup.fx_rate.repo.HistoricalRepository;
 import com.goodsoup.fx_rate.repo.PairRepository;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -23,8 +25,10 @@ import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.graphql.data.method.annotation.SchemaMapping;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
 
 @Controller
+@Validated
 public class PairController {
 
     private final PairRepository pairRepository;
@@ -55,19 +59,22 @@ public class PairController {
 
     @QueryMapping
     @Transactional(readOnly = true)
-    public PairEntity pairByBaseQuote(@Argument String base, @Argument String quote) {
+    public PairEntity pairByBaseQuote(
+            @Argument @NotBlank @Pattern(regexp = "^[A-Z]{3}$") String base,
+            @Argument @NotBlank @Pattern(regexp = "^[A-Z]{3}$") String quote
+    ) {
         return pairRepository.findByBaseAndQuote(base, quote).orElse(null);
     }
 
     @QueryMapping
     @Transactional(readOnly = true)
-    public List<PairEntity> pairsByBase(@Argument String base) {
+    public List<PairEntity> pairsByBase(@Argument @NotBlank @Pattern(regexp = "^[A-Z]{3}$") String base) {
         return pairRepository.findAllByBase(base);
     }
 
     @QueryMapping
     @Transactional(readOnly = true)
-    public List<PairEntity> pairsByQuote(@Argument String quote) {
+    public List<PairEntity> pairsByQuote(@Argument @NotBlank @Pattern(regexp = "^[A-Z]{3}$") String quote) {
         return pairRepository.findAllByQuote(quote);
     }
 

@@ -64,6 +64,40 @@ class FileUploadControllerTest {
     }
 
     @Test
+    void upload_returns400_whenBaseInvalid() throws Exception {
+        MockMultipartFile csv = new MockMultipartFile(
+                "file",
+                "data.csv",
+                "text/csv",
+                "Date,Open,High,Low,Close\n01/01/2026,1.0,1.1,0.9,1.05\n".getBytes()
+        );
+
+        mockMvc.perform(multipart("/api/file-uploads")
+                        .file(csv)
+                        .param("base", "EURO") // invalid: must be 3 uppercase letters
+                        .param("quote", "USD")
+                        .contentType(MediaType.MULTIPART_FORM_DATA))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void upload_returns400_whenQuoteInvalid() throws Exception {
+        MockMultipartFile csv = new MockMultipartFile(
+                "file",
+                "data.csv",
+                "text/csv",
+                "Date,Open,High,Low,Close\n01/01/2026,1.0,1.1,0.9,1.05\n".getBytes()
+        );
+
+        mockMvc.perform(multipart("/api/file-uploads")
+                        .file(csv)
+                        .param("base", "EUR")
+                        .param("quote", "usd") // invalid: must be uppercase
+                        .contentType(MediaType.MULTIPART_FORM_DATA))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void get_returnsResponse() throws Exception {
         UUID uuid = UUID.fromString("00000000-0000-0000-0000-000000000001");
 
