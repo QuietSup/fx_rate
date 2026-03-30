@@ -5,6 +5,7 @@ import static org.mockito.Mockito.when;
 import com.goodsoup.fx_rate.entity.FileUploadEntity;
 import com.goodsoup.fx_rate.entity.FileUploadStatus;
 import com.goodsoup.fx_rate.repo.FileUploadRepository;
+import com.goodsoup.fx_rate.security.TestMethodSecurityConfig;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -13,10 +14,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.graphql.test.autoconfigure.GraphQlTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.graphql.test.tester.GraphQlTester;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 @GraphQlTest(FileUploadController.class)
-@Import(GraphqlConfig.class)
+@Import({GraphqlConfig.class, TestMethodSecurityConfig.class})
 class FileUploadControllerGraphQlTest {
 
     @Autowired
@@ -26,6 +28,7 @@ class FileUploadControllerGraphQlTest {
     FileUploadRepository fileUploadRepository;
 
     @Test
+    @WithMockUser(roles = "ADMIN")
     void fileUploadByUuid_returnsEntity() {
         UUID uuid = UUID.fromString("00000000-0000-0000-0000-000000000001");
 
@@ -54,6 +57,7 @@ class FileUploadControllerGraphQlTest {
     }
 
     @Test
+    @WithMockUser(roles = "ADMIN")
     void fileUploads_returnsList() {
         FileUploadEntity first = new FileUploadEntity();
         first.setId(7L);
@@ -88,6 +92,7 @@ class FileUploadControllerGraphQlTest {
     }
 
     @Test
+    @WithMockUser(roles = "ADMIN")
     void fileUpload_returnsEntity() {
         long id = 7L;
         UUID uuid = UUID.fromString("00000000-0000-0000-0000-000000000001");
@@ -117,6 +122,7 @@ class FileUploadControllerGraphQlTest {
     }
 
     @Test
+    @WithMockUser(roles = "ADMIN")
     void fileUpload_returnsNullWhenNotFound() {
         when(fileUploadRepository.findById(7L)).thenReturn(Optional.empty());
 
@@ -134,6 +140,7 @@ class FileUploadControllerGraphQlTest {
     }
 
     @Test
+    @WithMockUser(roles = "ADMIN")
     void fileUploadByUuid_returnsNullWhenNotFound() {
         UUID uuid = UUID.fromString("00000000-0000-0000-0000-000000000001");
         when(fileUploadRepository.findByFileUploadUuid(uuid)).thenReturn(Optional.empty());
@@ -149,6 +156,80 @@ class FileUploadControllerGraphQlTest {
                 .variable("uuid", uuid.toString())
                 .execute()
                 .path("fileUploadByUuid").valueIsNull();
+    }
+
+    @Test
+    void fileUploadByUuid_returnsErrors_whenAnonymous() {
+        UUID uuid = UUID.fromString("00000000-0000-0000-0000-000000000001");
+
+        graphQlTester
+                .document("""
+                        query($uuid: ID!) {
+                          fileUploadByUuid(uuid: $uuid) {
+                            id
+                          }
+                        }
+                        """)
+                .variable("uuid", uuid.toString())
+                .execute()
+                .errors()
+                .satisfy(errors -> org.assertj.core.api.Assertions.assertThat(errors).isNotEmpty());
+    }
+
+    @Test
+    void fileUploads_returnsForbiddenError_whenAnonymous() {
+        graphQlTester
+                .document("""
+                        query {
+                          fileUploads {
+                            id
+                          }
+                        }
+                        """)
+                .execute()
+                .errors()
+                .satisfy(errors -> org.assertj.core.api.Assertions.assertThat(errors)
+                        .isNotEmpty()
+                        .anySatisfy(e -> org.assertj.core.api.Assertions.assertThat(e.getMessage()).contains("Unauthorized")));
+    }
+
+    @Test
+    @WithMockUser(roles = "STANDARD")
+    void fileUploads_returnsForbiddenError_whenStandardUser() {
+        graphQlTester
+                .document("""
+                        query {
+                          fileUploads {
+                            id
+                          }
+                        }
+                        """)
+                .execute()
+                .errors()
+                .satisfy(errors -> org.assertj.core.api.Assertions.assertThat(errors)
+                        .isNotEmpty()
+                        .anySatisfy(e -> org.assertj.core.api.Assertions.assertThat(e.getMessage()).contains("Forbidden")));
+    }
+
+    @Test
+    @WithMockUser(roles = "STANDARD")
+    void fileUploadByUuid_returnsForbiddenError_whenStandardUser() {
+        UUID uuid = UUID.fromString("00000000-0000-0000-0000-000000000001");
+
+        graphQlTester
+                .document("""
+                        query($uuid: ID!) {
+                          fileUploadByUuid(uuid: $uuid) {
+                            id
+                          }
+                        }
+                        """)
+                .variable("uuid", uuid.toString())
+                .execute()
+                .errors()
+                .satisfy(errors -> org.assertj.core.api.Assertions.assertThat(errors)
+                        .isNotEmpty()
+                        .anySatisfy(e -> org.assertj.core.api.Assertions.assertThat(e.getMessage()).contains("Forbidden")));
     }
 }
 

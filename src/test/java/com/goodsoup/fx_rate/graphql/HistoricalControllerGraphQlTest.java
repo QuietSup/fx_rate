@@ -6,6 +6,7 @@ import static org.mockito.Mockito.when;
 import com.goodsoup.fx_rate.entity.HistoricalEntity;
 import com.goodsoup.fx_rate.entity.PairEntity;
 import com.goodsoup.fx_rate.repo.HistoricalRepository;
+import com.goodsoup.fx_rate.security.TestMethodSecurityConfig;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
