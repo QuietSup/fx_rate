@@ -19,10 +19,10 @@ import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.graphql.GraphQlTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.graphql.test.autoconfigure.GraphQlTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.graphql.test.tester.GraphQlTester;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 @GraphQlTest(PairController.class)
 @Import(GraphqlConfig.class)
@@ -31,13 +31,13 @@ class PairControllerGraphQlTest {
     @Autowired
     GraphQlTester graphQlTester;
 
-    @MockBean
+    @MockitoBean
     PairRepository pairRepository;
 
-    @MockBean
+    @MockitoBean
     HistoricalRepository historicalRepository;
 
-    @MockBean
+    @MockitoBean
     FileUploadRepository fileUploadRepository;
 
     @Test
@@ -221,7 +221,7 @@ class PairControllerGraphQlTest {
                 .document("""
                         query($pairId: ID!, $first: Int) {
                           pair(id: $pairId) {
-                            historials(first: $first) {
+                            historicals(first: $first) {
                               totalCount
                               edges {
                                 cursor
@@ -277,7 +277,7 @@ class PairControllerGraphQlTest {
                 .document("""
                         query($pairId: ID!, $first: Int, $after: String) {
                           pair(id: $pairId) {
-                            historials(first: $first, after: $after) {
+                            historicals(first: $first, after: $after) {
                               totalCount
                               edges {
                                 cursor
@@ -320,7 +320,7 @@ class PairControllerGraphQlTest {
                 .document("""
                         query($pairId: ID!) {
                           pair(id: $pairId) {
-                            historials(first: 1) {
+                            historicals(first: 1) {
                               edges {
                                 node {
                                   id
